@@ -15,28 +15,33 @@ class AuthService {
       timeout: Duration(seconds: 30),
       phoneNumber: "+91$phone",
       verificationCompleted: (phoneAuthCredential) async {
+        print(phoneAuthCredential);
         return;
       },
       verificationFailed: (error) async {
+        print(error);
         return;
       },
       codeSent: (verificationId, forceResendingToken) async {
+        print(verificationId);
         verifyId = verificationId;
-        nextStep();
+        nextStep.call();
       },
       codeAutoRetrievalTimeout: (verificationId) async {
         return;
       },
     )
         .onError((error, stackTrace) {
-      errorStep();
+      print(error);
+      errorStep.call();
     });
   }
 
   // verify the otp code and login
   static Future loginWithOtp({required String otp}) async {
     final cred =
-    PhoneAuthProvider.credential(verificationId: verifyId, smsCode: otp);
+        PhoneAuthProvider.credential(verificationId: verifyId, smsCode: otp);
+    print(cred);
 
     try {
       final user = await _firebaseAuth.signInWithCredential(cred);

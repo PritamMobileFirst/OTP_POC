@@ -10,8 +10,8 @@ class ReadSms extends StatefulWidget {
 
 class _ReadSmsState extends State<ReadSms> {
   final Telephony telephony = Telephony.instance;
-  String textReceived ='';
-  void startListening(){
+  String textReceived = '';
+  void startListening() {
     print('Listening to sms');
     telephony.listenIncomingSms(
         onNewMessage: (SmsMessage message) {
@@ -19,20 +19,21 @@ class _ReadSmsState extends State<ReadSms> {
             textReceived = message.body!;
           });
         },
-        listenInBackground: false
-    );
+        listenInBackground: false);
   }
+
   @override
   void initState() {
     startListening();
     // TODO: implement initState
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Read Incoming SMS'),
+        title: const Text('Read Incoming SMS'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:telephony/telephony.dart';
 
@@ -17,15 +19,16 @@ class _LoginPageState extends State<LoginPage>
 
   final Telephony telephony = Telephony.instance;
 
-  TextEditingController _phoneContoller = TextEditingController();
-  TextEditingController _otpContoller = TextEditingController();
+  final TextEditingController _phoneContoller = TextEditingController();
+  final TextEditingController _otpContoller = TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
   final _formKey1 = GlobalKey<FormState>();
 
   void listenToIncomingSMS(BuildContext context) {
     print("Listening to sms.");
-    telephony.listenIncomingSms(
+    if (Platform.isAndroid) {
+      telephony.listenIncomingSms(
         onNewMessage: (SmsMessage message) {
           // Handle message
           print("sms received : ${message.body}");
@@ -36,29 +39,33 @@ class _LoginPageState extends State<LoginPage>
             setState(() {
               _otpContoller.text = otpCode;
               // wait for 1 sec and then press handle submit
-              Future.delayed(Duration(seconds: 1), () {
+              Future.delayed(const Duration(seconds: 1), () {
                 handleSubmit(context);
               });
             });
           }
         },
-        listenInBackground: false);
+        listenInBackground: false,
+      );
+    }
   }
 
 // handle after otp is submitted
   void handleSubmit(BuildContext context) {
+    print('here');
     if (_formKey1.currentState!.validate()) {
       AuthService.loginWithOtp(otp: _otpContoller.text).then((value) {
         if (value == "Success") {
           Navigator.pop(context);
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (context) => HomePage()));
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const HomePage()));
         } else {
+          print(value);
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(
               value,
-              style: TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.white),
             ),
             backgroundColor: Colors.red,
           ));
@@ -84,7 +91,7 @@ class _LoginPageState extends State<LoginPage>
     return Scaffold(
       appBar: AppBar(),
       body: SingleChildScrollView(
-        child: Container(
+        child: SizedBox(
           height: MediaQuery.of(context).size.height,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,13 +101,15 @@ class _LoginPageState extends State<LoginPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "Welcome",
-                      style:
-                      TextStyle(fontSize: 32, fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                    Text("Enter you phone number to continue."),
-                    SizedBox(
+                    const Text("Enter you phone number to continue."),
+                    const SizedBox(
                       height: 20,
                     ),
                     Form(
@@ -114,15 +123,14 @@ class _LoginPageState extends State<LoginPage>
                             border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(32))),
                         validator: (value) {
-                          if (value!.length != 10)
+                          if (value!.length != 10) {
                             return "Invalid phone number";
+                          }
                           return null;
                         },
                       ),
                     ),
-                    SizedBox(
-                      height: 20,
-                    ),
+                    const SizedBox(height: 20),
                     SizedBox(
                       height: 50,
                       width: double.infinity,
@@ -131,67 +139,74 @@ class _LoginPageState extends State<LoginPage>
                           if (_formKey.currentState!.validate()) {
                             AuthService.sentOtp(
                                 phone: _phoneContoller.text,
-                                errorStep: () => ScaffoldMessenger.of(context)
-                                    .showSnackBar(SnackBar(
-                                  content: Text(
-                                    "Error in sending OTP",
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                  backgroundColor: Colors.red,
-                                )),
+                                errorStep: () {
+                                  print('error');
+                                  ScaffoldMessenger.of(context)
+                                      .showSnackBar(const SnackBar(
+                                    content: Text(
+                                      "Error in sending OTP",
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ));
+                                },
                                 nextStep: () {
                                   // start lisenting for otp
                                   listenToIncomingSMS(context);
                                   showDialog(
                                       context: context,
                                       builder: (context) => AlertDialog(
-                                        title: Text("OTP Verification"),
-                                        content: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                          children: [
-                                            Text("Enter 6 digit OTP"),
-                                            SizedBox(
-                                              height: 12,
+                                            title:
+                                                const Text("OTP Verification"),
+                                            content: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const Text("Enter 6 digit OTP"),
+                                                const SizedBox(
+                                                  height: 12,
+                                                ),
+                                                Form(
+                                                  key: _formKey1,
+                                                  child: TextFormField(
+                                                    keyboardType:
+                                                        TextInputType.number,
+                                                    controller: _otpContoller,
+                                                    textInputAction:
+                                                        TextInputAction.done,
+                                                    decoration: InputDecoration(
+                                                        labelText:
+                                                            "Enter your OTP",
+                                                        border: OutlineInputBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        32))),
+                                                    validator: (value) {
+                                                      if (value!.length != 6) {
+                                                        return "Invalid OTP";
+                                                      }
+                                                      return null;
+                                                    },
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                            Form(
-                                              key: _formKey1,
-                                              child: TextFormField(
-                                                keyboardType:
-                                                TextInputType.number,
-                                                controller: _otpContoller,
-                                                decoration: InputDecoration(
-                                                    labelText:
-                                                    "Enter your OTP",
-                                                    border: OutlineInputBorder(
-                                                        borderRadius:
-                                                        BorderRadius
-                                                            .circular(
-                                                            32))),
-                                                validator: (value) {
-                                                  if (value!.length != 6)
-                                                    return "Invalid OTP";
-                                                  return null;
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                              onPressed: () =>
-                                                  handleSubmit(context),
-                                              child: Text("Submit"))
-                                        ],
-                                      ));
+                                            actions: [
+                                              TextButton(
+                                                  onPressed: () =>
+                                                      handleSubmit(context),
+                                                  child: const Text("Submit"))
+                                            ],
+                                          ));
                                 });
                           }
                         },
-                        child: Text("Send OTP"),
                         style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.yellow,
                             foregroundColor: Colors.black),
+                        child: const Text("Send OTP"),
                       ),
                     )
                   ],

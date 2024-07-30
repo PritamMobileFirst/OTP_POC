@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "215743137433",
+    "project_id": "otp-auto-27361",
+    "storage_bucket": "otp-auto-27361.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:215743137433:android:f1637a7d1a5894ddd6da08",
+        "android_client_info": {
+          "package_name": "com.example.otp_auto"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAP0vMuTPAMbIMb9g43-IeU5D4rShj8aTc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

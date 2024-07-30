@@ -34,7 +34,7 @@ class _LoginPageState extends State<LoginPage>
           print("sms received : ${message.body}");
           // verify if we are reading the correct sms or not
 
-          if (message.body!.contains("phone-auth-15bdb")) {
+          if (message.body!.contains("otp-auto-27361")) {
             String otpCode = message.body!.substring(0, 6);
             setState(() {
               _otpContoller.text = otpCode;

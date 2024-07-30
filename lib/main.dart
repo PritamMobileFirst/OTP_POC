@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:otp_auto/ui/login_page.dart';
+import 'package:telephony/telephony.dart';
 import 'firebase_options.dart';
 
 //backgrounMessageHandler(SmsMessage message) async {}
@@ -17,12 +18,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Phone Auth Tutorial',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.yellow),
-        useMaterial3: true,
-      ),
-      home: const LoginPage(),
+        title: 'Phone Auth Tutorial',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.yellow),
+          useMaterial3: true,
+        ),
+        home: LoginPage(),
     );
   }
 }

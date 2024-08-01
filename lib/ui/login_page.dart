@@ -25,25 +25,35 @@ class _LoginPageState extends State<LoginPage>
   final _formKey = GlobalKey<FormState>();
   final _formKey1 = GlobalKey<FormState>();
 
+  String extract6DigitOtp(String message) {
+    // Implement your OTP extraction logic here
+    // Example: Extracting a 6-digit OTP
+    final otpRegex = RegExp(r'\b\d{6}\b');
+    final match = otpRegex.firstMatch(message);
+    return match?.group(0) ?? '';
+  }
+
+  String extract4DigitOtp(String message) {
+    // Implement your OTP extraction logic here
+    // Example: Extracting a 6-digit OTP
+    final otpRegex = RegExp(r'\b\d{4}\b');
+    final match = otpRegex.firstMatch(message);
+    return match?.group(0) ?? '';
+  }
+
   void listenToIncomingSMS(BuildContext context) {
-    print("Listening to sms.");
     if (Platform.isAndroid) {
       telephony.listenIncomingSms(
         onNewMessage: (SmsMessage message) {
-          // Handle message
-          print("sms received : ${message.body}");
-          // verify if we are reading the correct sms or not
-
-          if (message.body!.contains("otp-auto-27361")) {
-            String otpCode = message.body!.substring(0, 6);
-            setState(() {
-              _otpContoller.text = otpCode;
-              // wait for 1 sec and then press handle submit
-              Future.delayed(const Duration(seconds: 1), () {
-                handleSubmit(context);
-              });
-            });
+          print(message.body);
+          String otpCode = extract6DigitOtp(message.body ?? '');
+          if (otpCode.isEmpty) {
+            otpCode = extract4DigitOtp(message.body ?? '');
           }
+          _otpContoller.text = otpCode;
+          Future.delayed(const Duration(milliseconds: 100), () {
+            handleSubmit(context);
+          });
         },
         listenInBackground: false,
       );
@@ -109,19 +119,19 @@ class _LoginPageState extends State<LoginPage>
                       ),
                     ),
                     const Text("Enter you phone number to continue."),
-                    const SizedBox(
-                      height: 20,
-                    ),
+                    const SizedBox(height: 20),
                     Form(
                       key: _formKey,
                       child: TextFormField(
                         controller: _phoneContoller,
                         keyboardType: TextInputType.phone,
                         decoration: InputDecoration(
-                            prefixText: "+91 ",
-                            labelText: "Enter you phone number",
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(32))),
+                          prefixText: "+91 ",
+                          labelText: "Enter you phone number",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(32),
+                          ),
+                        ),
                         validator: (value) {
                           if (value!.length != 10) {
                             return "Invalid phone number";
@@ -138,69 +148,70 @@ class _LoginPageState extends State<LoginPage>
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
                             AuthService.sentOtp(
-                                phone: _phoneContoller.text,
-                                errorStep: () {
-                                  print('error');
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(const SnackBar(
-                                    content: Text(
-                                      "Error in sending OTP",
-                                      style: TextStyle(color: Colors.white),
-                                    ),
-                                    backgroundColor: Colors.red,
-                                  ));
-                                },
-                                nextStep: () {
-                                  // start lisenting for otp
-                                  listenToIncomingSMS(context);
-                                  showDialog(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                            title:
-                                                const Text("OTP Verification"),
-                                            content: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                const Text("Enter 6 digit OTP"),
-                                                const SizedBox(
-                                                  height: 12,
+                              phone: _phoneContoller.text,
+                              errorStep: () {
+                                print('error');
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(
+                                  content: Text(
+                                    "Error in sending OTP",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                  backgroundColor: Colors.red,
+                                ));
+                              },
+                              nextStep: () {
+                                // start lisenting for otp
+                                listenToIncomingSMS(context);
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text("OTP Verification"),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Text("Enter 6 digit OTP"),
+                                        const SizedBox(
+                                          height: 12,
+                                        ),
+                                        Form(
+                                          key: _formKey1,
+                                          child: TextFormField(
+                                            keyboardType: TextInputType.number,
+                                            controller: _otpContoller,
+                                            textInputAction:
+                                                TextInputAction.done,
+                                            decoration: InputDecoration(
+                                              labelText: "Enter your OTP",
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(
+                                                  32,
                                                 ),
-                                                Form(
-                                                  key: _formKey1,
-                                                  child: TextFormField(
-                                                    keyboardType:
-                                                        TextInputType.number,
-                                                    controller: _otpContoller,
-                                                    textInputAction:
-                                                        TextInputAction.done,
-                                                    decoration: InputDecoration(
-                                                        labelText:
-                                                            "Enter your OTP",
-                                                        border: OutlineInputBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        32))),
-                                                    validator: (value) {
-                                                      if (value!.length != 6) {
-                                                        return "Invalid OTP";
-                                                      }
-                                                      return null;
-                                                    },
-                                                  ),
-                                                ),
-                                              ],
+                                              ),
                                             ),
-                                            actions: [
-                                              TextButton(
-                                                  onPressed: () =>
-                                                      handleSubmit(context),
-                                                  child: const Text("Submit"))
-                                            ],
-                                          ));
-                                });
+                                            validator: (value) {
+                                              if (value!.length != 6) {
+                                                return "Invalid OTP";
+                                              }
+                                              return null;
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => handleSubmit(context),
+                                        child: const Text("Submit"),
+                                      )
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
                           }
                         },
                         style: ElevatedButton.styleFrom(
